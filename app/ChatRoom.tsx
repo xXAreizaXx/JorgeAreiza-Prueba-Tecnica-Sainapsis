@@ -1,31 +1,40 @@
-import { Avatar } from '@/components/Avatar';
-import { MessageBubble } from '@/components/MessageBubble';
-import { ThemedText } from '@/components/ThemedText';
-import { ThemedView } from '@/components/ThemedView';
-import { IconSymbol } from '@/components/ui/IconSymbol';
-import { Message, MessageType } from '@/core/domain/entities/Message';
-import { useAppContext } from '@/hooks/AppContext';
-import { useColorScheme } from '@/hooks/useColorScheme';
-import { useMessages } from '@/hooks/useMessages';
+// React
+import React, { useCallback, useEffect, useRef, useState } from 'react';
+import {
+    ActivityIndicator,
+    Alert,
+    FlatList,
+    KeyboardAvoidingView,
+    ListRenderItemInfo,
+    Platform,
+    Pressable,
+    StyleSheet,
+    TextInput,
+    View
+} from 'react-native';
+
+// Expo
 import * as Haptics from 'expo-haptics';
 import { manipulateAsync, SaveFormat } from 'expo-image-manipulator';
 import * as ImagePicker from 'expo-image-picker';
 import { Stack, useLocalSearchParams, useRouter } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
-import React, { useCallback, useEffect, useRef, useState } from 'react';
-import {
-  ActivityIndicator,
-  Alert,
-  FlatList,
-  KeyboardAvoidingView,
-  ListRenderItemInfo,
-  Platform,
-  Pressable,
-  StyleSheet,
-  TextInput,
-  View
-} from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+
+// Components
+import { Avatar } from '@/components/Avatar';
+import { MessageBubble } from '@/components/MessageBubble';
+import { ThemedText } from '@/components/ThemedText';
+import { ThemedView } from '@/components/ThemedView';
+import { IconSymbol } from '@/components/ui/IconSymbol';
+
+// Domain
+import { Message, MessageType } from '@/core/domain/entities/Message';
+
+// Hooks
+import { useAppContext } from '@/hooks/AppContext';
+import { useColorScheme } from '@/hooks/useColorScheme';
+import { useMessages } from '@/hooks/useMessages';
 
 export default function ChatRoomScreen() {
   const { chatId } = useLocalSearchParams<{ chatId: string }>();
@@ -41,7 +50,6 @@ export default function ChatRoomScreen() {
   
   const chat = chats.find(c => c.id === chatId);
   
-  // Use the new messages hook with pagination
   const {
     messages,
     loading,
@@ -68,7 +76,6 @@ export default function ChatRoomScreen() {
       Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
       
       if (editingMessage) {
-        // Edit existing message
         const success = await editMessage(editingMessage.id, messageText.trim());
         if (success) {
           setEditingMessage(null);
@@ -76,7 +83,6 @@ export default function ChatRoomScreen() {
           Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
         }
       } else {
-        // Send new message
         const success = await sendMessageToRepo(messageText.trim(), selectedImage || undefined);
         if (success) {
           setMessageText('');
@@ -87,7 +93,6 @@ export default function ChatRoomScreen() {
     }
   }, [messageText, selectedImage, editingMessage, currentUser, chat, sendMessageToRepo, editMessage, updateChatLastMessage]);
 
-  // Mark messages as read when entering chat
   useEffect(() => {
     if (chatId && currentUser) {
       markAsRead();
@@ -95,17 +100,14 @@ export default function ChatRoomScreen() {
     }
   }, [chatId, currentUser, markAsRead, refreshUnreadCount]);
 
-  // Auto-scroll to bottom when new messages arrive
   useEffect(() => {
     if (messages.length > 0 && flatListRef.current) {
-      // Small delay to ensure list is rendered
       setTimeout(() => {
         flatListRef.current?.scrollToEnd({ animated: true });
       }, 100);
     }
   }, [messages.length]);
 
-  // Load more messages when reaching the top
   const handleLoadMore = useCallback(() => {
     if (!loadingMore && hasMore) {
       loadMore();
@@ -164,7 +166,6 @@ export default function ChatRoomScreen() {
     });
 
     if (!result.canceled && result.assets[0]) {
-      // Compress image
       const manipResult = await manipulateAsync(
         result.assets[0].uri,
         [{ resize: { width: 1024 } }],
@@ -182,7 +183,6 @@ export default function ChatRoomScreen() {
     });
   }, [chatId, router]);
 
-  // Render message item with optimization
   const renderMessage = useCallback(({ item }: ListRenderItemInfo<Message>) => (
     <MessageBubble
       message={item}
@@ -191,14 +191,12 @@ export default function ChatRoomScreen() {
     />
   ), [currentUser?.id, handleMessageLongPress]);
 
-  // Get item layout for performance
   const getItemLayout = useCallback((_: ArrayLike<Message> | null | undefined, index: number) => ({
-    length: 80, // Approximate item height
+    length: 80,
     offset: 80 * index,
     index,
   }), []);
 
-  // Key extractor
   const keyExtractor = useCallback((item: Message) => item.id, []);
 
   if (!chat || !currentUser) {

@@ -1,9 +1,9 @@
 import { db } from '@/database/db';
-import { chats, chatParticipants, messages } from '@/database/schema';
-import { eq, inArray, desc } from 'drizzle-orm';
-import { IChatRepository } from '../../domain/repositories/IChatRepository';
-import { Chat, CreateChatDTO, ChatWithUnreadCount } from '../../domain/entities/Chat';
+import { chatParticipants, chats, messages } from '@/database/schema';
+import { desc, eq, inArray } from 'drizzle-orm';
+import { Chat, ChatWithUnreadCount, CreateChatDTO } from '../../domain/entities/Chat';
 import { Message, MessageStatus, MessageType } from '../../domain/entities/Message';
+import { IChatRepository } from '../../domain/repositories/IChatRepository';
 
 export class ChatRepository implements IChatRepository {
   async getUserChats(userId: string): Promise<Chat[]> {

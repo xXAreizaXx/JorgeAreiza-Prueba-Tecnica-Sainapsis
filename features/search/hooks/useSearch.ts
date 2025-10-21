@@ -1,8 +1,8 @@
-import { useState, useCallback, useEffect } from 'react';
-import { SearchMessagesUseCase } from '@/core/domain/use-cases/messages/SearchMessagesUseCase';
 import { messageRepository } from '@/core/data/repositories/MessageRepository';
 import { Message } from '@/core/domain/entities/Message';
+import { SearchMessagesUseCase } from '@/core/domain/use-cases/messages/SearchMessagesUseCase';
 import { useDebounce } from '@/shared/hooks/useDebounce';
+import { useCallback, useEffect, useState } from 'react';
 
 const searchMessagesUseCase = new SearchMessagesUseCase(messageRepository);
 

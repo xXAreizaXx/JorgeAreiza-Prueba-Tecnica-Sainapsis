@@ -1,10 +1,10 @@
-import React from 'react';
-import { View, StyleSheet, Pressable } from 'react-native';
-import { ThemedText } from './ThemedText';
-import { Avatar } from './Avatar';
-import { IconSymbol } from './ui/IconSymbol';
-import { User } from '@/hooks/useUser';
 import { useColorScheme } from '@/hooks/useColorScheme';
+import { User } from '@/hooks/useUser';
+import React from 'react';
+import { Pressable, StyleSheet, View } from 'react-native';
+import { Avatar } from './Avatar';
+import { ThemedText } from './ThemedText';
+import { IconSymbol } from './ui/IconSymbol';
 
 interface UserListItemProps {
   user: User;

@@ -1,17 +1,17 @@
 import { db } from '@/database/db';
 import { messages } from '@/database/schema';
-import { eq, and, lt, desc, like } from 'drizzle-orm';
-import { IMessageRepository } from '../../domain/repositories/IMessageRepository';
+import { and, desc, eq, like, lt } from 'drizzle-orm';
 import {
-  Message,
-  CreateMessageDTO,
-  UpdateMessageDTO,
-  PaginationParams,
-  PaginatedMessages,
-  MessageSearchQuery,
-  MessageStatus,
-  MessageType,
+    CreateMessageDTO,
+    Message,
+    MessageSearchQuery,
+    MessageStatus,
+    MessageType,
+    PaginatedMessages,
+    PaginationParams,
+    UpdateMessageDTO,
 } from '../../domain/entities/Message';
+import { IMessageRepository } from '../../domain/repositories/IMessageRepository';
 
 export class MessageRepository implements IMessageRepository {
   async getMessages(chatId: string, params: PaginationParams): Promise<PaginatedMessages> {

@@ -1,7 +1,7 @@
-import { useState, useEffect, useCallback, useRef } from 'react';
 import { messageRepository } from '@/core/data/repositories';
 import { Message, MessageStatus, MessageType } from '@/core/domain/entities/Message';
 import { SendMessageUseCase } from '@/core/domain/use-cases/messages/SendMessageUseCase';
+import { useCallback, useEffect, useRef, useState } from 'react';
 
 const sendMessageUseCase = new SendMessageUseCase(messageRepository);
 

@@ -1,13 +1,22 @@
+// React
+import React from 'react';
+import { Pressable, SafeAreaView, ScrollView, StyleSheet, View } from 'react-native';
+
+// Expo
+import * as Haptics from 'expo-haptics';
+
+// Components
 import { Avatar } from '@/components/Avatar';
 import { ThemedText } from '@/components/ThemedText';
 import { ThemedView } from '@/components/ThemedView';
 import { IconSymbol } from '@/components/ui/IconSymbol';
+
+// Constants
 import { Colors } from '@/constants/Colors';
+
+// Hooks
 import { useAppContext } from '@/hooks/AppContext';
 import { useColorScheme } from '@/hooks/useColorScheme';
-import * as Haptics from 'expo-haptics';
-import React from 'react';
-import { Pressable, SafeAreaView, ScrollView, StyleSheet, View } from 'react-native';
 
 export default function ProfileScreen() {
   const { currentUser, logout } = useAppContext();

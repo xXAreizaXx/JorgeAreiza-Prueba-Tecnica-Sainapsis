@@ -1,23 +1,34 @@
+// React
+import React, { useCallback, useEffect, useState } from 'react';
+import {
+    ActivityIndicator,
+    FlatList,
+    ListRenderItemInfo,
+    Pressable,
+    StyleSheet,
+    TextInput,
+    View,
+} from 'react-native';
+
+// Expo
+import * as Haptics from 'expo-haptics';
+import { Stack, useLocalSearchParams, useRouter } from 'expo-router';
+
+// Components
 import { MessageBubble } from '@/components/MessageBubble';
 import { ThemedText } from '@/components/ThemedText';
 import { ThemedView } from '@/components/ThemedView';
 import { IconSymbol } from '@/components/ui/IconSymbol';
+
+// Data
 import { messageRepository } from '@/core/data/repositories';
+
+// Domain
 import { Message } from '@/core/domain/entities/Message';
+
+// Hooks
 import { useAppContext } from '@/hooks/AppContext';
 import { useColorScheme } from '@/hooks/useColorScheme';
-import * as Haptics from 'expo-haptics';
-import { Stack, useLocalSearchParams, useRouter } from 'expo-router';
-import React, { useCallback, useState } from 'react';
-import {
-  ActivityIndicator,
-  FlatList,
-  ListRenderItemInfo,
-  Pressable,
-  StyleSheet,
-  TextInput,
-  View,
-} from 'react-native';
 
 export default function SearchMessagesScreen() {
   const { chatId } = useLocalSearchParams<{ chatId?: string }>();
@@ -30,28 +41,37 @@ export default function SearchMessagesScreen() {
   const [results, setResults] = useState<Message[]>([]);
   const [loading, setLoading] = useState(false);
 
-  const handleSearch = useCallback(async () => {
-    if (!searchText.trim()) {
+  const handleSearch = useCallback(async (text: string) => {
+    if (!text.trim()) {
       setResults([]);
+      setLoading(false);
       return;
     }
 
     setLoading(true);
-    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
 
     try {
       const searchResults = await messageRepository.searchMessages({
-        searchTerm: searchText.trim(),
+        searchTerm: text.trim(),
         chatId: chatId || undefined,
         limit: 50,
       });
       setResults(searchResults);
     } catch (error) {
       console.error('Search error:', error);
+      setResults([]);
     } finally {
       setLoading(false);
     }
-  }, [searchText, chatId]);
+  }, [chatId]);
+
+  useEffect(() => {
+    const timeoutId = setTimeout(() => {
+      handleSearch(searchText);
+    }, 300);
+
+    return () => clearTimeout(timeoutId);
+  }, [searchText, handleSearch]);
 
   const renderMessage = useCallback(
     ({ item }: ListRenderItemInfo<Message>) => (
@@ -104,11 +124,14 @@ export default function SearchMessagesScreen() {
           onChangeText={setSearchText}
           placeholder="Search messages..."
           placeholderTextColor="#8F8F8F"
-          onSubmitEditing={handleSearch}
+          returnKeyType="search"
           autoFocus
         />
         {searchText.length > 0 && (
-          <Pressable onPress={() => setSearchText('')}>
+          <Pressable onPress={() => {
+            setSearchText('');
+            setResults([]);
+          }}>
             <IconSymbol name="xmark.circle.fill" size={20} color="#8F8F8F" />
           </Pressable>
         )}

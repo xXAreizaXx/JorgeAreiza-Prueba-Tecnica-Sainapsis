@@ -1,10 +1,10 @@
-import React from 'react';
-import { Modal, View, StyleSheet, Pressable, Alert } from 'react-native';
 import { ThemedText } from '@/components/ThemedText';
 import { ThemedView } from '@/components/ThemedView';
 import { IconSymbol } from '@/components/ui/IconSymbol';
 import { Message } from '@/core/domain/entities/Message';
 import { useColorScheme } from '@/hooks/useColorScheme';
+import React from 'react';
+import { Alert, Modal, Pressable, StyleSheet, View } from 'react-native';
 
 interface MessageActionsModalProps {
   visible: boolean;

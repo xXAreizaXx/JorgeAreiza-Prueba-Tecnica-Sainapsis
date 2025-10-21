@@ -1,14 +1,23 @@
+// React
+import React from 'react';
+import { FlatList, SafeAreaView, StyleSheet, View } from 'react-native';
+
+// Expo
+import { useRouter } from 'expo-router';
+import { StatusBar } from 'expo-status-bar';
+
+// Components
 import { ThemedText } from '@/components/ThemedText';
 import { ThemedView } from '@/components/ThemedView';
 import { UserListItem } from '@/components/UserListItem';
 import { IconSymbol } from '@/components/ui/IconSymbol';
+
+// Constants
 import { Colors } from '@/constants/Colors';
+
+// Hooks
 import { useAppContext } from '@/hooks/AppContext';
 import { useColorScheme } from '@/hooks/useColorScheme';
-import { useRouter } from 'expo-router';
-import { StatusBar } from 'expo-status-bar';
-import React from 'react';
-import { FlatList, SafeAreaView, StyleSheet, View } from 'react-native';
 
 export default function LoginScreen() {
   const { users, login } = useAppContext();

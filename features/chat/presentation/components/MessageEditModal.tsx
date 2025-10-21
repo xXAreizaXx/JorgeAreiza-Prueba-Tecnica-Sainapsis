@@ -1,9 +1,9 @@
-import React, { useState, useEffect } from 'react';
-import { Modal, View, StyleSheet, TextInput, Pressable, KeyboardAvoidingView, Platform } from 'react-native';
 import { ThemedText } from '@/components/ThemedText';
 import { ThemedView } from '@/components/ThemedView';
 import { Message } from '@/core/domain/entities/Message';
 import { useColorScheme } from '@/hooks/useColorScheme';
+import React, { useEffect, useState } from 'react';
+import { KeyboardAvoidingView, Modal, Platform, Pressable, StyleSheet, TextInput, View } from 'react-native';
 
 interface MessageEditModalProps {
   visible: boolean;

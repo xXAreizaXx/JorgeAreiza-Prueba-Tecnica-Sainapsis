@@ -1,8 +1,8 @@
 import { db } from '@/database/db';
 import { users } from '@/database/schema';
 import { eq, inArray } from 'drizzle-orm';
-import { IUserRepository } from '../../domain/repositories/IUserRepository';
 import { User, UserStatus } from '../../domain/entities/User';
+import { IUserRepository } from '../../domain/repositories/IUserRepository';
 
 export class UserRepository implements IUserRepository {
   async getAllUsers(): Promise<User[]> {

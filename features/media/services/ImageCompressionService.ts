@@ -1,5 +1,5 @@
-import * as ImageManipulator from 'expo-image-manipulator';
 import { ImageCompressionService as IImageCompressionService } from '@/core/domain/use-cases/media/ShareImageUseCase';
+import * as ImageManipulator from 'expo-image-manipulator';
 
 export class ImageCompressionService implements IImageCompressionService {
   async compressImage(uri: string, quality: number = 0.7): Promise<string> {

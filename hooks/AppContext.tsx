@@ -1,9 +1,9 @@
-import React, { createContext, useContext, ReactNode } from 'react';
-import { useUser, User } from './useUser';
-import { useChatList } from './useChatList';
-import { DatabaseProvider } from '../database/DatabaseProvider';
-import { useDatabase } from './useDatabase';
 import { Chat } from '@/data/repositories/types';
+import React, { createContext, ReactNode, useContext } from 'react';
+import { DatabaseProvider } from '../database/DatabaseProvider';
+import { useChatList } from './useChatList';
+import { useDatabase } from './useDatabase';
+import { User, useUser } from './useUser';
 
 type AppContextType = {
   users: User[];

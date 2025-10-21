@@ -1,6 +1,6 @@
-import React from 'react';
-import { Modal, View, StyleSheet, Image, Pressable, Dimensions } from 'react-native';
 import { IconSymbol } from '@/components/ui/IconSymbol';
+import React from 'react';
+import { Dimensions, Image, Modal, Pressable, StyleSheet, View } from 'react-native';
 
 interface ImagePreviewModalProps {
   visible: boolean;

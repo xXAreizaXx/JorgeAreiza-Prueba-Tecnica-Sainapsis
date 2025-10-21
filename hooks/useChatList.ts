@@ -1,6 +1,6 @@
-import { useState, useEffect, useCallback } from 'react';
 import { chatRepository, messageRepository } from '@/data/repositories';
 import { Chat } from '@/data/repositories/types';
+import { useCallback, useEffect, useState } from 'react';
 
 export function useChatList(currentUserId: string | null) {
   const [chats, setChats] = useState<Chat[]>([]);

@@ -1,14 +1,14 @@
-import React, { useEffect } from 'react';
 import { DarkTheme, DefaultTheme, ThemeProvider } from '@react-navigation/native';
 import { useFonts } from 'expo-font';
-import { Stack, useSegments, useRouter } from 'expo-router';
+import { Stack, useRouter, useSegments } from 'expo-router';
 import * as SplashScreen from 'expo-splash-screen';
 import { StatusBar } from 'expo-status-bar';
+import React, { useEffect } from 'react';
 import 'react-native-reanimated';
 
-import { useColorScheme } from '@/hooks/useColorScheme';
-import { AppProvider, useAppContext } from '@/hooks/AppContext';
 import { DrizzleStudioDevTool } from '@/database/DrizzleStudio';
+import { AppProvider, useAppContext } from '@/hooks/AppContext';
+import { useColorScheme } from '@/hooks/useColorScheme';
 
 SplashScreen.preventAutoHideAsync();
 

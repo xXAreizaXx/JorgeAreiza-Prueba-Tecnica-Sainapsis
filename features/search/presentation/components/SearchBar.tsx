@@ -1,7 +1,7 @@
-import React from 'react';
-import { View, TextInput, StyleSheet, Pressable } from 'react-native';
 import { IconSymbol } from '@/components/ui/IconSymbol';
 import { useColorScheme } from '@/hooks/useColorScheme';
+import React from 'react';
+import { Pressable, StyleSheet, TextInput, View } from 'react-native';
 
 interface SearchBarProps {
   value: string;

@@ -27,10 +27,13 @@
         "backgroundColor": "#ffffff"
       },
       "package": "com.chatapp.mobile",
+      "versionCode": 1,
       "permissions": [
-        "READ_EXTERNAL_STORAGE",
-        "WRITE_EXTERNAL_STORAGE",
-        "CAMERA"
+        "android.permission.READ_EXTERNAL_STORAGE",
+        "android.permission.WRITE_EXTERNAL_STORAGE",
+        "android.permission.CAMERA",
+        "android.permission.READ_MEDIA_IMAGES",
+        "android.permission.RECORD_AUDIO"
       ]
     },
     "web": {
@@ -61,6 +64,14 @@
     ],
     "experiments": {
       "typedRoutes": true
+    },
+    "extra": {
+      "router": {
+        "origin": false
+      },
+      "eas": {
+        "projectId": "ae18a190-6aeb-4a44-a758-5bfe8d57acea"
+      }
     }
   }
 }

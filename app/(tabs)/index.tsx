@@ -1,13 +1,20 @@
+// React
+import React, { useState } from 'react';
+import { FlatList, Modal, Pressable, StyleSheet, View } from 'react-native';
+
+// Expo
+import * as Haptics from 'expo-haptics';
+
+// Components
 import { ChatListItem } from '@/components/ChatListItem';
 import { ThemedText } from '@/components/ThemedText';
 import { ThemedView } from '@/components/ThemedView';
 import { UserListItem } from '@/components/UserListItem';
 import { IconSymbol } from '@/components/ui/IconSymbol';
+
+// Hooks
 import { useAppContext } from '@/hooks/AppContext';
 import { useColorScheme } from '@/hooks/useColorScheme';
-import * as Haptics from 'expo-haptics';
-import React, { useState } from 'react';
-import { FlatList, Modal, Pressable, StyleSheet, View } from 'react-native';
 
 export default function ChatsScreen() {
   const { currentUser, users, chats, createChat, unreadCounts } = useAppContext();
