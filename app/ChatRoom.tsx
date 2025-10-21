@@ -3,15 +3,19 @@ import { MessageBubble } from '@/components/MessageBubble';
 import { ThemedText } from '@/components/ThemedText';
 import { ThemedView } from '@/components/ThemedView';
 import { IconSymbol } from '@/components/ui/IconSymbol';
-import type { Message } from '@/core/domain/entities/Message';
+import { Message, MessageType } from '@/core/domain/entities/Message';
 import { useAppContext } from '@/hooks/AppContext';
+import { useColorScheme } from '@/hooks/useColorScheme';
 import { useMessages } from '@/hooks/useMessages';
+import * as Haptics from 'expo-haptics';
+import { manipulateAsync, SaveFormat } from 'expo-image-manipulator';
+import * as ImagePicker from 'expo-image-picker';
 import { Stack, useLocalSearchParams, useRouter } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
-import * as Haptics from 'expo-haptics';
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import {
   ActivityIndicator,
+  Alert,
   FlatList,
   KeyboardAvoidingView,
   ListRenderItemInfo,
@@ -22,12 +26,13 @@ import {
   View
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { useColorScheme } from '@/hooks/useColorScheme';
 
 export default function ChatRoomScreen() {
   const { chatId } = useLocalSearchParams<{ chatId: string }>();
   const { currentUser, users, chats, updateChatLastMessage, refreshUnreadCount } = useAppContext();
   const [messageText, setMessageText] = useState('');
+  const [editingMessage, setEditingMessage] = useState<Message | null>(null);
+  const [selectedImage, setSelectedImage] = useState<string | null>(null);
   const flatListRef = useRef<FlatList>(null);
   const router = useRouter();
   const insets = useSafeAreaInsets();
@@ -45,6 +50,8 @@ export default function ChatRoomScreen() {
     loadMore,
     sendMessage: sendMessageToRepo,
     markAsRead,
+    editMessage,
+    deleteMessage,
   } = useMessages(chatId || null, currentUser?.id || null);
   
   const chatParticipants = chat?.participants
@@ -57,15 +64,28 @@ export default function ChatRoomScreen() {
     : `${chatParticipants[0]?.name || 'Unknown'} & ${chatParticipants.length - 1} other${chatParticipants.length > 1 ? 's' : ''}`;
 
   const handleSendMessage = useCallback(async () => {
-    if (messageText.trim() && currentUser && chat) {
+    if ((messageText.trim() || selectedImage) && currentUser && chat) {
       Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-      const success = await sendMessageToRepo(messageText.trim());
-      if (success) {
-        setMessageText('');
-        updateChatLastMessage(chat.id);
+      
+      if (editingMessage) {
+        // Edit existing message
+        const success = await editMessage(editingMessage.id, messageText.trim());
+        if (success) {
+          setEditingMessage(null);
+          setMessageText('');
+          Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+        }
+      } else {
+        // Send new message
+        const success = await sendMessageToRepo(messageText.trim(), selectedImage || undefined);
+        if (success) {
+          setMessageText('');
+          setSelectedImage(null);
+          updateChatLastMessage(chat.id);
+        }
       }
     }
-  }, [messageText, currentUser, chat, sendMessageToRepo, updateChatLastMessage]);
+  }, [messageText, selectedImage, editingMessage, currentUser, chat, sendMessageToRepo, editMessage, updateChatLastMessage]);
 
   // Mark messages as read when entering chat
   useEffect(() => {
@@ -92,13 +112,84 @@ export default function ChatRoomScreen() {
     }
   }, [loadingMore, hasMore, loadMore]);
 
+  const handleMessageLongPress = useCallback((message: Message) => {
+    if (message.senderId !== currentUser?.id || message.type === MessageType.DELETED) return;
+    
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+    
+    Alert.alert(
+      'Message Options',
+      'What would you like to do?',
+      [
+        {
+          text: 'Edit',
+          onPress: () => {
+            setEditingMessage(message);
+            setMessageText(message.text);
+            Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+          },
+        },
+        {
+          text: 'Delete',
+          style: 'destructive',
+          onPress: async () => {
+            const success = await deleteMessage(message.id);
+            if (success) {
+              Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+            }
+          },
+        },
+        {
+          text: 'Cancel',
+          style: 'cancel',
+        },
+      ]
+    );
+  }, [currentUser?.id, deleteMessage]);
+
+  const handleImagePick = useCallback(async () => {
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+    
+    const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
+    if (status !== 'granted') {
+      Alert.alert('Permission needed', 'Please grant photo library access');
+      return;
+    }
+
+    const result = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: ImagePicker.MediaTypeOptions.Images,
+      allowsEditing: true,
+      aspect: [4, 3],
+      quality: 0.8,
+    });
+
+    if (!result.canceled && result.assets[0]) {
+      // Compress image
+      const manipResult = await manipulateAsync(
+        result.assets[0].uri,
+        [{ resize: { width: 1024 } }],
+        { compress: 0.7, format: SaveFormat.JPEG }
+      );
+      setSelectedImage(manipResult.uri);
+    }
+  }, []);
+
+  const handleSearchPress = useCallback(() => {
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+    router.push({
+      pathname: '/SearchMessages',
+      params: { chatId: chatId || '' },
+    });
+  }, [chatId, router]);
+
   // Render message item with optimization
   const renderMessage = useCallback(({ item }: ListRenderItemInfo<Message>) => (
     <MessageBubble
       message={item}
       isCurrentUser={item.senderId === currentUser?.id}
+      onLongPress={handleMessageLongPress}
     />
-  ), [currentUser?.id]);
+  ), [currentUser?.id, handleMessageLongPress]);
 
   // Get item layout for performance
   const getItemLayout = useCallback((_: ArrayLike<Message> | null | undefined, index: number) => ({
@@ -120,9 +211,9 @@ export default function ChatRoomScreen() {
 
   return (
     <KeyboardAvoidingView
-      style={styles.container}
       behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
       keyboardVerticalOffset={Platform.OS === 'ios' ? 90 + insets.top : 0}
+      style={styles.container}
     >
       <StatusBar style="auto" />
       <Stack.Screen 
@@ -157,7 +248,15 @@ export default function ChatRoomScreen() {
               }}
               style={styles.backButton}
             >
-              <IconSymbol name="chevron.left" size={28} color={isDark ? '#0A84FF' : '#007AFF'} />
+              <IconSymbol name="chevron.left" size={20} color={isDark ? '#0A84FF' : '#007AFF'} />
+            </Pressable>
+          ),
+          headerRight: () => (
+            <Pressable 
+              onPress={handleSearchPress}
+              style={styles.backButton}
+            >
+              <IconSymbol name="magnifyingglass" size={25} color={isDark ? '#0A84FF' : '#007AFF'} />
             </Pressable>
           ),
           headerStyle: {
@@ -172,14 +271,18 @@ export default function ChatRoomScreen() {
         </ThemedView>
       ) : (
         <FlatList
-          ref={flatListRef}
-          data={messages}
-          keyExtractor={keyExtractor}
-          renderItem={renderMessage}
-          getItemLayout={getItemLayout}
           contentContainerStyle={styles.messagesContainer}
+          data={messages}
+          getItemLayout={getItemLayout}
+          keyExtractor={keyExtractor}
+          maxToRenderPerBatch={10}
           onEndReached={handleLoadMore}
           onEndReachedThreshold={0.5}
+          ref={flatListRef}
+          removeClippedSubviews={Platform.OS === 'android'}
+          renderItem={renderMessage}
+          updateCellsBatchingPeriod={50}
+          windowSize={10}
           ListHeaderComponent={
             loadingMore ? (
               <View style={styles.loadingMore}>
@@ -193,40 +296,57 @@ export default function ChatRoomScreen() {
               <ThemedText>No messages yet. Say hello!</ThemedText>
             </ThemedView>
           )}
-          windowSize={10}
-          maxToRenderPerBatch={10}
-          updateCellsBatchingPeriod={50}
-          removeClippedSubviews={Platform.OS === 'android'}
         />
+      )}
+
+      {editingMessage && (
+        <ThemedView style={[styles.editingBar, { backgroundColor: isDark ? '#1C1C1E' : '#F0F0F0' }]}>
+          <ThemedText style={styles.editingText}>Editing message</ThemedText>
+          <Pressable onPress={() => {
+            setEditingMessage(null);
+            setMessageText('');
+          }}>
+            <IconSymbol name="xmark.circle.fill" size={20} color="#8F8F8F" />
+          </Pressable>
+        </ThemedView>
+      )}
+
+      {selectedImage && (
+        <ThemedView style={[styles.imagePreview, { backgroundColor: isDark ? '#1C1C1E' : '#F0F0F0' }]}>
+          <ThemedText style={styles.imagePreviewText}>Image selected</ThemedText>
+          <Pressable onPress={() => setSelectedImage(null)}>
+            <IconSymbol name="xmark.circle.fill" size={20} color="#8F8F8F" />
+          </Pressable>
+        </ThemedView>
       )}
 
       <ThemedView style={[styles.inputContainer, { paddingBottom: Math.max(insets.bottom, 8) }]}>
         <Pressable 
           style={styles.attachButton}
-          onPress={() => Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light)}
+          onPress={handleImagePick}
         >
           <IconSymbol name="plus.circle.fill" size={28} color={isDark ? '#8F8F8F' : '#8F8F8F'} />
         </Pressable>
         <View style={[styles.inputWrapper, { backgroundColor: isDark ? '#1C1C1E' : '#F0F0F0' }]}>
           <TextInput
-            style={[styles.input, { color: isDark ? '#FFFFFF' : '#000000' }]}
-            value={messageText}
+            maxLength={1000}
+            multiline
             onChangeText={setMessageText}
             placeholder="Message"
             placeholderTextColor={isDark ? '#8F8F8F' : '#999999'}
-            multiline
-            maxLength={1000}
+            style={[styles.input, { color: isDark ? '#FFFFFF' : '#000000' }]}
+            value={messageText}
           />
         </View>
         <Pressable
-          style={[styles.sendButton, !messageText.trim() && styles.disabledButton]}
+          style={[styles.sendButton, !(messageText.trim() || selectedImage) && styles.disabledButton]}
           onPress={handleSendMessage}
-          disabled={!messageText.trim()}
+          disabled={!(messageText.trim() || selectedImage)}
         >
           <IconSymbol 
-            name="arrow.up.circle.fill" 
+            name={editingMessage ? "checkmark.circle.fill" : "arrow.up.circle.fill"}
             size={34} 
-            color={messageText.trim() ? (isDark ? '#0A84FF' : '#007AFF') : '#8F8F8F'} 
+            color={(messageText.trim() || selectedImage) ? (isDark ? '#0A84FF' : '#007AFF') : '#8F8F8F'} 
           />
         </Pressable>
       </ThemedView>
@@ -305,12 +425,35 @@ const styles = StyleSheet.create({
   },
   input: {
     fontSize: 16,
-    lineHeight: 20,
+    lineHeight: 15,
   },
   sendButton: {
     marginBottom: 2,
   },
   disabledButton: {
     opacity: 1,
+  },
+  editingBar: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+  },
+  editingText: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#007AFF',
+  },
+  imagePreview: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+  },
+  imagePreviewText: {
+    fontSize: 14,
+    color: '#8F8F8F',
   },
 }); 

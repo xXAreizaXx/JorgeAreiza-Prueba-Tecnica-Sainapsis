@@ -1,31 +1,15 @@
-import React from 'react';
-import { View, StyleSheet } from 'react-native';
-import { ThemedText } from './ThemedText';
+import { Colors } from '@/constants/Colors';
+import { useColorScheme } from '@/hooks/useColorScheme';
 import { User } from '@/hooks/useUser';
+import React from 'react';
+import { StyleSheet, View } from 'react-native';
+import { ThemedText } from './ThemedText';
 
 interface AvatarProps {
   user?: User;
   size?: number;
   showStatus?: boolean;
 }
-
-
-const getAvatarColor = (identifier?: string): string => {
-  if (!identifier) return '#C0C0C0';
-  
-  let hash = 0;
-  for (let i = 0; i < identifier.length; i++) {
-    hash = identifier.charCodeAt(i) + ((hash << 5) - hash);
-  }
-  
-  let color = '#';
-  for (let i = 0; i < 3; i++) {
-    const value = (hash >> (i * 8)) & 0xFF;
-    color += (`00${  value.toString(16)}`).substr(-2);
-  }
-  
-  return color;
-};
 
 const getInitials = (name?: string): string => {
   if (!name) return '?';
@@ -39,7 +23,8 @@ const getInitials = (name?: string): string => {
 };
 
 export function Avatar({ user, size = 40, showStatus = true }: AvatarProps) {
-  const backgroundColor = getAvatarColor(user?.id || user?.name);
+  const colorScheme = useColorScheme();
+  const backgroundColor = Colors[colorScheme || 'dark'].tabIconSelected;
   const initials = getInitials(user?.name);
   
   const statusColors = {
@@ -58,7 +43,10 @@ export function Avatar({ user, size = 40, showStatus = true }: AvatarProps) {
       >
         <ThemedText style={[
           styles.initials,
-          { fontSize: size * 0.4 }
+          { 
+            fontSize: size * 0.4,
+            lineHeight: size * 0.4 * 1.2,
+          }
         ]}>
           {initials}
         </ThemedText>

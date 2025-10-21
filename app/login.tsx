@@ -1,13 +1,14 @@
-import React from 'react';
-import { StyleSheet, FlatList, SafeAreaView, View } from 'react-native';
-import { useRouter } from 'expo-router';
-import { StatusBar } from 'expo-status-bar';
-import { useAppContext } from '@/hooks/AppContext';
 import { ThemedText } from '@/components/ThemedText';
 import { ThemedView } from '@/components/ThemedView';
 import { UserListItem } from '@/components/UserListItem';
 import { IconSymbol } from '@/components/ui/IconSymbol';
+import { Colors } from '@/constants/Colors';
+import { useAppContext } from '@/hooks/AppContext';
 import { useColorScheme } from '@/hooks/useColorScheme';
+import { useRouter } from 'expo-router';
+import { StatusBar } from 'expo-status-bar';
+import React from 'react';
+import { FlatList, SafeAreaView, StyleSheet, View } from 'react-native';
 
 export default function LoginScreen() {
   const { users, login } = useAppContext();
@@ -31,11 +32,11 @@ export default function LoginScreen() {
           <View style={[styles.iconContainer, { backgroundColor: isDark ? '#1C1C1E' : '#F0F0F0' }]}>
             <IconSymbol 
               name="message.fill" 
-              size={48} 
-              color={isDark ? '#0A84FF' : '#007AFF'} 
+              size={60} 
+              color={isDark ? Colors.dark.tabIconSelected : Colors.light.tabIconSelected}
             />
           </View>
-          <ThemedText style={styles.title}>Chat App</ThemedText>
+          <ThemedText style={styles.title} numberOfLines={1} adjustsFontSizeToFit>Chat App</ThemedText>
           <ThemedText style={styles.subtitle}>
             Choose your profile to get started
           </ThemedText>
@@ -84,7 +85,7 @@ const styles = StyleSheet.create({
     fontSize: 32,
     fontWeight: '700',
     marginBottom: 8,
-    letterSpacing: -0.5,
+    lineHeight: 40,
   },
   subtitle: {
     fontSize: 15,

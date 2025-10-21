@@ -1,10 +1,10 @@
-import React from 'react';
-import { View, StyleSheet, Image, Pressable } from 'react-native';
-import { ThemedText } from './ThemedText';
-import { Message, MessageType, MessageStatus } from '@/core/domain/entities/Message';
+import { Message, MessageStatus, MessageType } from '@/core/domain/entities/Message';
 import { useColorScheme } from '@/hooks/useColorScheme';
-import { IconSymbol } from './ui/IconSymbol';
 import { formatTime } from '@/shared/utils/date.utils';
+import React from 'react';
+import { Image, Pressable, StyleSheet, View } from 'react-native';
+import { ThemedText } from './ThemedText';
+import { IconSymbol } from './ui/IconSymbol';
 
 interface MessageBubbleProps {
   message: Message;
@@ -86,7 +86,7 @@ export function MessageBubble({
       <View style={[
         styles.bubble,
         isCurrentUser 
-          ? [styles.selfBubble, { backgroundColor: isDark ? '#235A4A' : '#DCF8C6' }]
+          ? [styles.selfBubble, { backgroundColor: isDark ? '#235A4A' : '#0a7ea4' }]
           : [styles.otherBubble, { backgroundColor: isDark ? '#2A2C33' : '#FFFFFF' }],
         isDeleted && styles.deletedBubble
       ]}>

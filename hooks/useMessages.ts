@@ -89,8 +89,8 @@ export function useMessages(
   }, [chatId, loadingMore, hasMore, pageSize]);
 
   // Send message
-  const sendMessage = useCallback(async (text: string) => {
-    if (!chatId || !currentUserId || !text.trim()) {
+  const sendMessage = useCallback(async (text: string, imageUrl?: string) => {
+    if (!chatId || !currentUserId || (!text.trim() && !imageUrl)) {
       return false;
     }
 
@@ -100,10 +100,11 @@ export function useMessages(
         id: `temp-${Date.now()}`,
         chatId,
         senderId: currentUserId,
-        text: text.trim(),
+        text: text.trim() || (imageUrl ? 'Image' : ''),
         timestamp: Date.now(),
         status: MessageStatus.SENDING,
-        type: MessageType.TEXT,
+        type: imageUrl ? MessageType.IMAGE : MessageType.TEXT,
+        imageUrl,
       };
 
       setMessages(prev => [...prev, optimisticMessage]);
@@ -112,7 +113,9 @@ export function useMessages(
       const sentMessage = await sendMessageUseCase.execute({
         chatId,
         senderId: currentUserId,
-        text: text.trim(),
+        text: text.trim() || (imageUrl ? 'Image' : ''),
+        type: imageUrl ? MessageType.IMAGE : MessageType.TEXT,
+        imageUrl,
       });
 
       // Replace optimistic message with real one
@@ -156,6 +159,79 @@ export function useMessages(
     }
   }, [chatId, currentUserId, messages]);
 
+  // Edit message
+  const editMessage = useCallback(async (messageId: string, newText: string) => {
+    if (!chatId || !currentUserId || !newText.trim()) {
+      return false;
+    }
+
+    try {
+      // Optimistic update
+      setMessages(prev =>
+        prev.map(m =>
+          m.id === messageId
+            ? { ...m, text: newText.trim(), editedAt: Date.now() }
+            : m
+        )
+      );
+
+      // Update in DB
+      await messageRepository.updateMessage({
+        id: messageId,
+        text: newText.trim(),
+        editedAt: Date.now(),
+      });
+
+      return true;
+    } catch (err) {
+      console.error('Error editing message:', err);
+      setError('Failed to edit message');
+      // Revert on error - reload messages
+      const result = await messageRepository.getMessages(chatId, {
+        limit: initialLimit,
+      });
+      setMessages(result.items.reverse());
+      return false;
+    }
+  }, [chatId, currentUserId, initialLimit]);
+
+  // Delete message
+  const deleteMessage = useCallback(async (messageId: string) => {
+    if (!chatId || !currentUserId) {
+      return false;
+    }
+
+    try {
+      // Optimistic update
+      setMessages(prev =>
+        prev.map(m =>
+          m.id === messageId
+            ? {
+                ...m,
+                text: 'This message was deleted',
+                deletedAt: Date.now(),
+                type: MessageType.DELETED,
+              }
+            : m
+        )
+      );
+
+      // Delete in DB
+      await messageRepository.deleteMessage(messageId);
+
+      return true;
+    } catch (err) {
+      console.error('Error deleting message:', err);
+      setError('Failed to delete message');
+      // Revert on error - reload messages
+      const result = await messageRepository.getMessages(chatId, {
+        limit: initialLimit,
+      });
+      setMessages(result.items.reverse());
+      return false;
+    }
+  }, [chatId, currentUserId, initialLimit]);
+
   return {
     messages,
     loading,
@@ -165,5 +241,7 @@ export function useMessages(
     loadMore,
     sendMessage,
     markAsRead,
+    editMessage,
+    deleteMessage,
   };
 }

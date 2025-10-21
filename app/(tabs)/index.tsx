@@ -1,13 +1,13 @@
-import React, { useState } from 'react';
-import { FlatList, StyleSheet, Pressable, Modal, View } from 'react-native';
-import { useAppContext } from '@/hooks/AppContext';
+import { ChatListItem } from '@/components/ChatListItem';
 import { ThemedText } from '@/components/ThemedText';
 import { ThemedView } from '@/components/ThemedView';
-import { ChatListItem } from '@/components/ChatListItem';
 import { UserListItem } from '@/components/UserListItem';
 import { IconSymbol } from '@/components/ui/IconSymbol';
-import * as Haptics from 'expo-haptics';
+import { useAppContext } from '@/hooks/AppContext';
 import { useColorScheme } from '@/hooks/useColorScheme';
+import * as Haptics from 'expo-haptics';
+import React, { useState } from 'react';
+import { FlatList, Modal, Pressable, StyleSheet, View } from 'react-native';
 
 export default function ChatsScreen() {
   const { currentUser, users, chats, createChat, unreadCounts } = useAppContext();
@@ -150,7 +150,7 @@ const styles = StyleSheet.create({
   headerTitle: {
     fontSize: 34,
     fontWeight: '700',
-    letterSpacing: -0.5,
+    lineHeight: 40,
   },
   newChatButton: {
     padding: 4,

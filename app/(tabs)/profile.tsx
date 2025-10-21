@@ -2,11 +2,12 @@ import { Avatar } from '@/components/Avatar';
 import { ThemedText } from '@/components/ThemedText';
 import { ThemedView } from '@/components/ThemedView';
 import { IconSymbol } from '@/components/ui/IconSymbol';
+import { Colors } from '@/constants/Colors';
 import { useAppContext } from '@/hooks/AppContext';
+import { useColorScheme } from '@/hooks/useColorScheme';
 import * as Haptics from 'expo-haptics';
 import React from 'react';
-import { Pressable, SafeAreaView, StyleSheet, View, ScrollView } from 'react-native';
-import { useColorScheme } from '@/hooks/useColorScheme';
+import { Pressable, SafeAreaView, ScrollView, StyleSheet, View } from 'react-native';
 
 export default function ProfileScreen() {
   const { currentUser, logout } = useAppContext();
@@ -47,9 +48,9 @@ export default function ProfileScreen() {
         {/* Info Cards */}
         <View style={styles.cardsContainer}>
           {/* Account Info Card */}
-          <View style={[styles.card, { backgroundColor: isDark ? '#1C1C1E' : '#FFFFFF' }]}>
+          <View style={[styles.card, { backgroundColor: isDark ? "#1C1C1E" : "#FFFFFF" }]}>
             <View style={styles.cardHeader}>
-              <IconSymbol name="person.circle.fill" size={24} color={isDark ? '#0A84FF' : '#007AFF'} />
+              <IconSymbol name="person.circle.fill" size={24} color={isDark ? Colors.dark.tabIconSelected : Colors.light.tabIconSelected} />
               <ThemedText style={styles.cardTitle}>Account Information</ThemedText>
             </View>
             
@@ -67,7 +68,7 @@ export default function ProfileScreen() {
           {/* Settings Card */}
           <View style={[styles.card, { backgroundColor: isDark ? '#1C1C1E' : '#FFFFFF' }]}>
             <View style={styles.cardHeader}>
-              <IconSymbol name="gear" size={24} color={isDark ? '#0A84FF' : '#007AFF'} />
+              <IconSymbol name="gear" size={24} color={isDark ? Colors.dark.tabIconSelected : Colors.light.tabIconSelected} />
               <ThemedText style={styles.cardTitle}>Settings</ThemedText>
             </View>
             
@@ -145,6 +146,7 @@ const styles = StyleSheet.create({
     fontSize: 28,
     fontWeight: '700',
     marginTop: 16,
+    lineHeight: 28,
   },
   statusContainer: {
     flexDirection: 'row',
@@ -163,6 +165,7 @@ const styles = StyleSheet.create({
   },
   cardsContainer: {
     paddingHorizontal: 16,
+    marginTop: 20,
     gap: 16,
   },
   card: {
@@ -230,18 +233,18 @@ const styles = StyleSheet.create({
     paddingBottom: 100,
   },
   logoutButton: {
-    flexDirection: 'row',
-    backgroundColor: '#FF3B30',
-    paddingVertical: 16,
-    borderRadius: 14,
     alignItems: 'center',
-    justifyContent: 'center',
+    backgroundColor: '#FF3B30',
+    borderRadius: 14,
+    elevation: 3,
+    flexDirection: 'row',
     gap: 10,
+    justifyContent: 'center',
+    paddingVertical: 16,
     shadowColor: '#FF3B30',
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.3,
     shadowRadius: 4,
-    elevation: 3,
   },
   logoutText: {
     color: '#FFFFFF',
