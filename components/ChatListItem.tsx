@@ -1,18 +1,20 @@
 import React, { useMemo } from 'react';
 import { View, StyleSheet, Pressable } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
-import { Chat } from '@/hooks/useChats';
+import { Chat } from '@/data/repositories/types';
 import { Avatar } from './Avatar';
 import { ThemedText } from './ThemedText';
+import { IconSymbol } from './ui/IconSymbol';
 import { User } from '@/hooks/useUser';
 
 interface ChatListItemProps {
   chat: Chat;
   currentUserId: string;
   users: User[];
+  unreadCount?: number;
 }
 
-export function ChatListItem({ chat, currentUserId, users }: ChatListItemProps) {
+export function ChatListItem({ chat, currentUserId, users, unreadCount = 0 }: ChatListItemProps) {
   const navigation = useNavigation();
   
   const otherParticipants = useMemo(() => {
@@ -33,7 +35,8 @@ export function ChatListItem({ chat, currentUserId, users }: ChatListItemProps) 
   }, [otherParticipants]);
 
   const handlePress = () => {
-    navigation.navigate('ChatRoom' as never, { chatId: chat.id } as never);
+    // @ts-expect-error - Navigation typing issue with Expo Router
+    navigation.navigate('ChatRoom', { chatId: chat.id });
   };
 
   const timeString = useMemo(() => {
@@ -57,31 +60,56 @@ export function ChatListItem({ chat, currentUserId, users }: ChatListItemProps) 
   const isCurrentUserLastSender = chat.lastMessage?.senderId === currentUserId;
 
   return (
-    <Pressable style={styles.container} onPress={handlePress}>
+    <Pressable 
+      style={({ pressed }) => [
+        styles.container,
+        pressed && { opacity: 0.7 },
+      ]} 
+      onPress={handlePress}
+    >
       <Avatar 
         user={otherParticipants[0]} 
-        size={50}
+        size={56}
       />
       <View style={styles.contentContainer}>
         <View style={styles.topRow}>
-          <ThemedText type="defaultSemiBold" numberOfLines={1} style={styles.name}>
+          <ThemedText numberOfLines={1} style={styles.name}>
             {chatName}
           </ThemedText>
           {timeString && (
-            <ThemedText style={styles.time}>{timeString}</ThemedText>
+            <ThemedText style={[styles.time, unreadCount > 0 && styles.unreadTime]}>
+              {timeString}
+            </ThemedText>
           )}
         </View>
         <View style={styles.bottomRow}>
           {chat.lastMessage && (
-            <ThemedText 
-              numberOfLines={1}
-              style={[
-                styles.lastMessage,
-                isCurrentUserLastSender && styles.currentUserMessage
-              ]}
-            >
-              {isCurrentUserLastSender && 'You: '}{chat.lastMessage.text}
-            </ThemedText>
+            <View style={styles.messageContainer}>
+              {isCurrentUserLastSender && (
+                <IconSymbol 
+                  name="checkmark" 
+                  size={14} 
+                  color="#8F8F8F" 
+                  style={styles.checkIcon}
+                />
+              )}
+              <ThemedText 
+                numberOfLines={1}
+                style={[
+                  styles.lastMessage,
+                  unreadCount > 0 && styles.unreadMessage
+                ]}
+              >
+                {chat.lastMessage.text}
+              </ThemedText>
+            </View>
+          )}
+          {unreadCount > 0 && (
+            <View style={styles.unreadBadge}>
+              <ThemedText style={styles.unreadText}>
+                {unreadCount > 99 ? '99+' : unreadCount}
+              </ThemedText>
+            </View>
           )}
         </View>
       </View>
@@ -92,40 +120,69 @@ export function ChatListItem({ chat, currentUserId, users }: ChatListItemProps) 
 const styles = StyleSheet.create({
   container: {
     flexDirection: 'row',
-    padding: 12,
+    paddingVertical: 12,
+    paddingHorizontal: 16,
     alignItems: 'center',
-    borderBottomWidth: StyleSheet.hairlineWidth,
-    borderBottomColor: '#E1E1E1',
   },
   contentContainer: {
     flex: 1,
-    marginLeft: 12,
+    marginLeft: 16,
     justifyContent: 'center',
   },
   topRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: 4,
+    marginBottom: 6,
   },
   bottomRow: {
     flexDirection: 'row',
     alignItems: 'center',
   },
   name: {
+    fontSize: 17,
+    fontWeight: '600',
     flex: 1,
     marginRight: 8,
   },
   time: {
-    fontSize: 12,
+    fontSize: 13,
     color: '#8F8F8F',
   },
+  unreadTime: {
+    color: '#007AFF',
+    fontWeight: '600',
+  },
+  messageContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    flex: 1,
+  },
+  checkIcon: {
+    marginRight: 4,
+  },
   lastMessage: {
-    fontSize: 14,
+    fontSize: 15,
     color: '#8F8F8F',
     flex: 1,
   },
-  currentUserMessage: {
-    fontStyle: 'italic',
+  unreadMessage: {
+    fontWeight: '600',
+    color: '#000000',
+  },
+  unreadBadge: {
+    backgroundColor: '#007AFF',
+    borderRadius: 12,
+    minWidth: 22,
+    height: 22,
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingHorizontal: 7,
+    marginLeft: 8,
+  },
+  unreadText: {
+    color: '#FFFFFF',
+    fontSize: 12,
+    fontWeight: '700',
   },
 }); 

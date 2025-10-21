@@ -29,14 +29,11 @@ export function DatabaseProvider({ children }: DatabaseProviderProps) {
 
     async function setupDatabase() {
       try {
-        console.log('Initializing database...');
         // Initialize the database schema
         await initializeDatabase();
-        console.log('Database initialized');
         
         // Seed the database with initial data
         await seedDatabase();
-        console.log('Database seeded');
         
         if (isMounted) {
           setIsInitialized(true);

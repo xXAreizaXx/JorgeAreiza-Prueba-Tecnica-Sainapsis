@@ -1,8 +1,9 @@
 import React, { createContext, useContext, ReactNode } from 'react';
 import { useUser, User } from './useUser';
-import { useChats, Chat } from './useChats';
+import { useChatList } from './useChatList';
 import { DatabaseProvider } from '../database/DatabaseProvider';
 import { useDatabase } from './useDatabase';
+import { Chat } from '@/data/repositories/types';
 
 type AppContextType = {
   users: User[];
@@ -11,8 +12,10 @@ type AppContextType = {
   login: (userId: string) => Promise<boolean>;
   logout: () => void;
   chats: Chat[];
+  unreadCounts: Map<string, number>;
   createChat: (participantIds: string[]) => Promise<Chat | null>;
-  sendMessage: (chatId: string, text: string, senderId: string) => Promise<boolean>;
+  updateChatLastMessage: (chatId: string) => void;
+  refreshUnreadCount: (chatId: string) => Promise<void>;
   loading: boolean;
   dbInitialized: boolean;
 };
@@ -22,7 +25,7 @@ const AppContext = createContext<AppContextType | undefined>(undefined);
 function AppContent({ children }: { children: ReactNode }) {
   const { isInitialized } = useDatabase();
   const userContext = useUser();
-  const chatContext = useChats(userContext.currentUser?.id || null);
+  const chatContext = useChatList(userContext.currentUser?.id || null);
   
   const loading = !isInitialized || userContext.loading || chatContext.loading;
 

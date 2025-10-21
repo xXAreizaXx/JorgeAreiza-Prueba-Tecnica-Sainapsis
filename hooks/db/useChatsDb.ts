@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { db } from '../../database/db';
 import { chats, chatParticipants, messages } from '../../database/schema';
-import { eq, and, desc, sql } from 'drizzle-orm';
+import { eq } from 'drizzle-orm';
 
 export interface Message {
   id: string;
@@ -110,18 +110,21 @@ export function useChatsDb(currentUserId: string | null) {
     
     try {
       const chatId = `chat${Date.now()}`;
+      const now = Date.now();
       
       // Insert new chat
       await db.insert(chats).values({
         id: chatId,
+        createdAt: now,
+        updatedAt: now,
       });
       
       // Insert participants
       for (const userId of participantIds) {
         await db.insert(chatParticipants).values({
           id: `cp-${chatId}-${userId}`,
-          chatId: chatId,
-          userId: userId,
+          chatId,
+          userId,
         });
       }
       
@@ -149,10 +152,10 @@ export function useChatsDb(currentUserId: string | null) {
       // Insert new message
       await db.insert(messages).values({
         id: messageId,
-        chatId: chatId,
-        senderId: senderId,
-        text: text,
-        timestamp: timestamp,
+        chatId,
+        senderId,
+        text,
+        timestamp,
       });
       
       const newMessage: Message = {

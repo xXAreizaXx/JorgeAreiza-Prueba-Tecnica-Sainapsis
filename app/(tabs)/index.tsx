@@ -1,16 +1,20 @@
 import React, { useState } from 'react';
-import { FlatList, StyleSheet, Pressable, Modal } from 'react-native';
+import { FlatList, StyleSheet, Pressable, Modal, View } from 'react-native';
 import { useAppContext } from '@/hooks/AppContext';
 import { ThemedText } from '@/components/ThemedText';
 import { ThemedView } from '@/components/ThemedView';
 import { ChatListItem } from '@/components/ChatListItem';
 import { UserListItem } from '@/components/UserListItem';
 import { IconSymbol } from '@/components/ui/IconSymbol';
+import * as Haptics from 'expo-haptics';
+import { useColorScheme } from '@/hooks/useColorScheme';
 
 export default function ChatsScreen() {
-  const { currentUser, users, chats, createChat } = useAppContext();
+  const { currentUser, users, chats, createChat, unreadCounts } = useAppContext();
   const [modalVisible, setModalVisible] = useState(false);
   const [selectedUsers, setSelectedUsers] = useState<string[]>([]);
+  const colorScheme = useColorScheme();
+  const isDark = colorScheme === 'dark';
 
   const toggleUserSelection = (userId: string) => {
     if (selectedUsers.includes(userId)) {
@@ -22,6 +26,7 @@ export default function ChatsScreen() {
 
   const handleCreateChat = () => {
     if (currentUser && selectedUsers.length > 0) {
+      Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
       const participants = [currentUser.id, ...selectedUsers];
       createChat(participants);
       setModalVisible(false);
@@ -30,23 +35,30 @@ export default function ChatsScreen() {
   };
 
   const renderEmptyComponent = () => (
-    <ThemedView style={styles.emptyContainer}>
-      <ThemedText style={styles.emptyText}>No chats yet</ThemedText>
-      <ThemedText>Tap the + button to start a new conversation</ThemedText>
-    </ThemedView>
+    <View style={styles.emptyContainer}>
+      <IconSymbol name="message.fill" size={64} color="#8F8F8F" />
+      <ThemedText style={styles.emptyTitle}>No Chats Yet</ThemedText>
+      <ThemedText style={styles.emptyText}>Tap the + button to start a conversation</ThemedText>
+    </View>
   );
 
   return (
     <ThemedView style={styles.container}>
-      <ThemedView style={styles.header}>
-        <ThemedText type="title">Chats</ThemedText>
+      <View style={[styles.header, { backgroundColor: isDark ? '#000000' : '#FFFFFF' }]}>
+        <ThemedText style={styles.headerTitle}>Messages</ThemedText>
         <Pressable
-          style={styles.newChatButton}
-          onPress={() => setModalVisible(true)}
+          style={({ pressed }) => [
+            styles.newChatButton,
+            pressed && { opacity: 0.6 }
+          ]}
+          onPress={() => {
+            Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+            setModalVisible(true);
+          }}
         >
-          <IconSymbol name="plus" size={24} color="#007AFF" />
+          <IconSymbol name="square.and.pencil" size={24} color={isDark ? '#0A84FF' : '#007AFF'} />
         </Pressable>
-      </ThemedView>
+      </View>
 
       <FlatList
         data={chats}
@@ -56,10 +68,12 @@ export default function ChatsScreen() {
             chat={item}
             currentUserId={currentUser?.id || ''}
             users={users}
+            unreadCount={unreadCounts.get(item.id) || 0}
           />
         )}
         ListEmptyComponent={renderEmptyComponent}
-        contentContainerStyle={styles.listContainer}
+        contentContainerStyle={chats.length === 0 ? styles.emptyListContainer : styles.listContainer}
+        showsVerticalScrollIndicator={false}
       />
 
       <Modal
@@ -122,37 +136,47 @@ export default function ChatsScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    paddingTop: 60,
   },
   header: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
     paddingHorizontal: 20,
-    paddingBottom: 20,
+    paddingTop: 60,
+    paddingBottom: 16,
+    borderBottomWidth: StyleSheet.hairlineWidth,
+    borderBottomColor: '#E1E1E1',
+  },
+  headerTitle: {
+    fontSize: 34,
+    fontWeight: '700',
+    letterSpacing: -0.5,
   },
   newChatButton: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    justifyContent: 'center',
-    alignItems: 'center',
-    backgroundColor: 'rgba(0, 122, 255, 0.1)',
+    padding: 4,
   },
   listContainer: {
+    flexGrow: 1,
+  },
+  emptyListContainer: {
     flexGrow: 1,
   },
   emptyContainer: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    padding: 20,
-    marginTop: 40,
+    padding: 40,
+    gap: 16,
+  },
+  emptyTitle: {
+    fontSize: 22,
+    fontWeight: '600',
+    marginTop: 16,
   },
   emptyText: {
-    fontSize: 18,
-    fontWeight: 'bold',
-    marginBottom: 10,
+    fontSize: 15,
+    color: '#8F8F8F',
+    textAlign: 'center',
   },
   modalContainer: {
     flex: 1,

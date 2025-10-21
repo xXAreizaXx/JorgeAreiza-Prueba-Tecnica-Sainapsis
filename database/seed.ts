@@ -79,26 +79,26 @@ export async function seedDatabase() {
     // Check if database already has data
     const alreadySeeded = await isDataSeeded();
     if (alreadySeeded) {
-      console.log('Database already seeded, skipping...');
       return;
     }
     
-    console.log('Seeding database...');
     
     // Insert users
-    console.log('Seeding users...');
     for (const user of mockUsers) {
       await db.insert(users).values(user).onConflictDoNothing();
     }
     
     // Insert chats and their relationships
-    console.log('Seeding chats...');
+    const now = Date.now();
     for (const chat of initialChats) {
       // Insert chat
-      await db.insert(chats).values({ id: chat.id }).onConflictDoNothing();
+      await db.insert(chats).values({ 
+        id: chat.id,
+        createdAt: now,
+        updatedAt: now,
+      }).onConflictDoNothing();
       
       // Insert participants
-      console.log(`Adding participants for chat ${chat.id}...`);
       for (const userId of chat.participants) {
         await db.insert(chatParticipants).values({
           id: `cp-${chat.id}-${userId}`,
@@ -108,7 +108,6 @@ export async function seedDatabase() {
       }
       
       // Insert messages
-      console.log(`Adding messages for chat ${chat.id}...`);
       for (const message of chat.messages) {
         await db.insert(messages).values({
           id: message.id,
@@ -120,7 +119,6 @@ export async function seedDatabase() {
       }
     }
     
-    console.log('Database seeded successfully');
   } catch (error) {
     console.error('Error seeding database:', error);
     throw error;
